@@ -1,7 +1,7 @@
 {
-  "name": "netlify-functions",
+  "name": "outlook-ai-asistente",
   "version": "1.0.0",
-  "main": "mejorar-correo.js",
+  "main": "taskpane.js",
   "dependencies": {
     "node-fetch": "^2.6.7"
   }
