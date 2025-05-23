@@ -22,7 +22,7 @@
     </Sets>
   </Requirements>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://tu-app-en-netlify.netlify.app/taskpane.html" />
+    <SourceLocation DefaultValue="https://outlook-ai-asistente.netlify.app/taskpane.html" />
   </DefaultSettings>
   <Permissions>ReadWriteItem</Permissions>
 </OfficeApp>
