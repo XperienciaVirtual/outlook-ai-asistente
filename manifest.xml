@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="TaskPaneApp">
-  <Id>c7c1a2e1-1234-4567-89ab-abcdef123456</Id>
+  <Id>6a093958-0f8c-45df-8d83-6bc7231ac043</Id>
   <Version>1.0.0.0</Version>
   <ProviderName>Asistente Redacción IA</ProviderName>
   <DefaultLocale>es-ES</DefaultLocale>
