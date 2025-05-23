@@ -1,0 +1,13 @@
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f6fa; margin: 0; }
+.container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 32px 28px; }
+h1 { color: #2d6cdf; text-align: center; margin-bottom: 12px; }
+label { display: block; margin-top: 18px; font-weight: 500; }
+input, textarea { width: 100%; border: 1px solid #cfd8dc; border-radius: 6px; padding: 10px; margin-top: 6px; font-size: 1em; background: #f9fafb; }
+textarea { resize: vertical; min-height: 120px; }
+button { background: #2d6cdf; color: #fff; border: none; border-radius: 6px; padding: 12px 0; width: 100%; font-size: 1.1em; font-weight: 600; margin-top: 22px; cursor: pointer; transition: background 0.2s; }
+button:hover { background: #1e4fa0; }
+#resultado, #cargando, #error { margin-top: 28px; }
+#resultado.hidden, #cargando.hidden, #error.hidden { display: none; }
+pre { background: #f4f6f8; border-radius: 5px; padding: 16px; white-space: pre-wrap; word-break: break-word; }
+ul#explicaciones { margin: 0 0 0 18px; }
+#error { color: #c0392b; font-weight: bold; }

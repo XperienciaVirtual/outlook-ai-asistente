@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente de Redacción para Outlook</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Asistente de Redacción</h1>
+        <p id="intro">¡Hola! Soy tu asistente para mejorar la comunicación escrita en tus correos electrónicos.</p>
+        <form id="correoForm">
+            <label for="destinatario">Destinatario:</label>
+            <input type="text" id="destinatario" name="destinatario" placeholder="Ejemplo: Juan Pérez o Dr. González" required>
+
+            <label for="proposito">Propósito del correo:</label>
+            <input type="text" id="proposito" name="proposito" placeholder="Ejemplo: Solicitar información, enviar propuesta..." required>
+
+            <label for="correo">Texto del correo:</label>
+            <textarea id="correo" name="correo" rows="10" placeholder="Escribe o pega tu correo aquí..." required></textarea>
+
+            <button type="submit">Mejorar correo</button>
+        </form>
+        <div id="resultado" class="hidden">
+            <h2>Correo Mejorado</h2>
+            <pre id="correoMejorado"></pre>
+            <h3>Explicación de mejoras</h3>
+            <ul id="explicaciones"></ul>
+            <button id="volver">Revisar otro correo</button>
+        </div>
+        <div id="cargando" class="hidden">Procesando... Por favor espera.</div>
+        <div id="error" class="hidden"></div>
+    </div>
+    <script src="taskpane.js"></script>
+</body>
+</html>

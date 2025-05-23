@@ -1,0 +1,8 @@
+node_modules/
+assets/
+*.log
+.env
+netlify/functions/node_modules/
+.DS_Store
+*.local
+coverage/

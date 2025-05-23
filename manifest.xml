@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="TaskPaneApp">
+  <Id>c7c1a2e1-1234-4567-89ab-abcdef123456</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Asistente Redacción IA</ProviderName>
+  <DefaultLocale>es-ES</DefaultLocale>
+  <DisplayName DefaultValue="Asistente de Redacción IA" />
+  <Description DefaultValue="Mejora tus correos electrónicos en Outlook con ayuda de IA, corrigiendo y optimizando tu mensaje de forma profesional." />
+  <IconUrl DefaultValue="https://www.outlook.com/favicon.ico" />
+  <HighResolutionIconUrl DefaultValue="https://www.outlook.com/favicon.ico" />
+  <SupportUrl DefaultValue="https://github.com/tuusuario/outlook-ai-asistente" />
+  <AppDomains>
+    <AppDomain>https://localhost:3000</AppDomain>
+    <AppDomain>https://tu-app-en-netlify.netlify.app</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox" />
+  </Hosts>
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <Set Name="Mailbox" />
+    </Sets>
+  </Requirements>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://tu-app-en-netlify.netlify.app/taskpane.html" />
+  </DefaultSettings>
+  <Permissions>ReadWriteItem</Permissions>
+</OfficeApp>
