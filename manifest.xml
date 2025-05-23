@@ -10,8 +10,7 @@
   <HighResolutionIconUrl DefaultValue="https://www.outlook.com/favicon.ico" />
   <SupportUrl DefaultValue="https://github.com/tuusuario/outlook-ai-asistente" />
   <AppDomains>
-    <AppDomain>https://localhost:3000</AppDomain>
-    <AppDomain>https://tu-app-en-netlify.netlify.app</AppDomain>
+    <AppDomain>https://outlook-ai-asistente.netlify.app</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Mailbox" />
