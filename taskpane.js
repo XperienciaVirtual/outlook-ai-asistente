@@ -35,6 +35,34 @@ Office.onReady(function(info) {
             errorDiv.classList.add('hidden');
         }
 
+        // Función de reintento con retroceso exponencial
+        async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    // Si la respuesta no es OK, pero no es un error de red, reintentar si quedan intentos
+                    if (retries > 0 && (response.status === 500 || response.status === 502 || response.status === 503 || response.status === 504 || response.status === 429)) {
+                        console.warn(`Intento fallido (${response.status}). Reintentando en ${delay / 1000}s...`);
+                        await new Promise(res => setTimeout(res, delay));
+                        return fetchWithRetry(url, options, retries - 1, delay * 2);
+                    } else {
+                        // Si no es un error reintentable o no quedan reintentos
+                        const errorText = await response.text();
+                        throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
+                    }
+                }
+                return response;
+            } catch (error) {
+                if (retries > 0 && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+                    console.warn(`Error de red. Reintentando en ${delay / 1000}s...`);
+                    await new Promise(res => setTimeout(res, delay));
+                    return fetchWithRetry(url, options, retries - 1, delay * 2);
+                } else {
+                    throw error; // Re-lanzar el error si no es reintentable o no quedan intentos
+                }
+            }
+        }
+
         // Inicializar la vista al cargar el complemento
         mostrarFormularioPrincipal();
 
@@ -82,7 +110,8 @@ Office.onReady(function(info) {
                     const correoContent = asyncResult.value;
 
                     try {
-                        const response = await fetch('/.netlify/functions/mejorar-correo', {
+                        // Usar fetchWithRetry para la llamada a la función serverless
+                        const response = await fetchWithRetry('/.netlify/functions/mejorar-correo', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify({ correo: correoContent })
@@ -120,7 +149,8 @@ Office.onReady(function(info) {
                     const correoSinFirma = eliminarFirma(correoCompleto);
 
                     try {
-                        const response = await fetch('/.netlify/functions/traducir-correo', {
+                        // Usar fetchWithRetry para la llamada a la función serverless de traducción
+                        const response = await fetchWithRetry('/.netlify/functions/traducir-correo', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify({ texto: correoSinFirma })
