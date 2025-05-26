@@ -17,7 +17,7 @@ exports.handler = async function(event, context) {
   }
 
   // Construir el prompt adaptado para solo usar el contenido del correo
-  const prompt = `Eres un asistente experto en redacción de correos electrónicos. Tu tarea es mejorar el siguiente correo, corrigiendo ortografía y gramática, sugiriendo mejoras de estructura y expresiones para que sea más formal, claro y efectivo, pero respetando al 100% la primera frase y el tono original. No añadas adjetivos ni cambies el encabezado. Habla en singular si el texto está en primera persona. Explica cada mejora realizada de forma clara y profesional, en español.\n\nCorreo original:\n${correo}`;
+  const prompt = `Eres un asistente experto en redacción de correos electrónicos. Tu tarea es mejorar el siguiente correo, corrigiendo ortografía y gramática, sugiriendo mejoras de estructura y expresiones para que sea más formal, claro y efectivo, pero respetando al 100% la primera frase y el tono original. No añadas adjetivos ni cambies el encabezado. Habla en singular si el texto está en primera persona. **IMPORTANTE: Devuelve ÚNICAMENTE el correo mejorado, sin ningún prefijo como 'Correo mejorado:', 'Aquí tienes el correo mejorado:', o similar. No incluyas explicaciones de las mejoras.**\n\nCorreo original:\n${correo}`;
 
   try {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -50,20 +50,13 @@ exports.handler = async function(event, context) {
     }
     if (!result.choices || !result.choices[0]) throw new Error('Sin respuesta válida de OpenAI');
 
-    // Esperamos que el modelo devuelva el correo mejorado y explicaciones separadas por un separador especial
-    // Ejemplo de formato esperado: "<correo mejorado>\n---\nExplicaciones:\n- ...\n- ..."
     const output = result.choices[0].message.content;
-    const parts = output.split(/---+|Explicaciones:/i);
-    const correoMejorado = parts[0] ? parts[0].trim() : '';
-    const explicacionesRaw = parts[1] || '';
-
-    const explicaciones = explicacionesRaw
-      ? explicacionesRaw.split(/\n|\r/).map(e => e.replace(/^[-•\s]+/, '')).filter(Boolean)
-      : ['No se encontraron explicaciones.'];
+    // Ya no necesitamos separar explicaciones, el modelo solo debe devolver el correo mejorado
+    const correoMejorado = output.trim();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ correoMejorado: correoMejorado, explicaciones })
+      body: JSON.stringify({ correoMejorado: correoMejorado })
     };
   } catch (err) {
     console.error('Error en la función mejorar-correo:', err); // Registrar el error en Netlify
