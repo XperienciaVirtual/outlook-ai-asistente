@@ -7,7 +7,7 @@ textarea { resize: vertical; min-height: 120px; }
 button { background: #2d6cdf; color: #fff; border: none; border-radius: 6px; padding: 12px 0; width: 100%; font-size: 1.1em; font-weight: 600; margin-top: 22px; cursor: pointer; transition: background 0.2s; }
 button:hover { background: #1e4fa0; }
 #resultado, #cargando, #error { margin-top: 28px; }
-#resultado.hidden, #cargando.hidden, #error.hidden { display: none; }
+#resultado.hidden, #cargando.hidden, #error.hidden, #correoForm.hidden, #traduccionResultado.hidden { display: none; }
 pre { background: #f4f6f8; border-radius: 5px; padding: 16px; white-space: pre-wrap; word-break: break-word; }
 ul#explicaciones { margin: 0 0 0 18px; }
 #error { color: #c0392b; font-weight: bold; }
