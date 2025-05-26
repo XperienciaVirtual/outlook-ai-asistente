@@ -26,6 +26,18 @@ Office.onReady(function(info) {
             correoTraducido.textContent = '';
         }
 
+        // Función para mostrar solo el formulario principal
+        function mostrarFormularioPrincipal() {
+            form.classList.remove('hidden');
+            resultado.classList.add('hidden');
+            traduccionResultado.classList.add('hidden');
+            cargando.classList.add('hidden');
+            errorDiv.classList.add('hidden');
+        }
+
+        // Inicializar la vista al cargar el complemento
+        mostrarFormularioPrincipal();
+
         // Función heurística para intentar eliminar la firma del correo
         function eliminarFirma(texto) {
             const lineas = texto.split(/\r?\n/);
@@ -132,12 +144,11 @@ Office.onReady(function(info) {
         });
 
         volverBtn.addEventListener('click', function () {
-            resultado.classList.add('hidden');
-            // form.reset(); // No es necesario resetear el formulario ya que no hay campos de entrada
+            mostrarFormularioPrincipal();
         });
 
         volverTraduccionBtn.addEventListener('click', function () {
-            traduccionResultado.classList.add('hidden');
+            mostrarFormularioPrincipal();
         });
     }
 });
