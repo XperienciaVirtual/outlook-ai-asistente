@@ -34,7 +34,7 @@ exports.handler = async function(event, context) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: 'Eres un asistente de redacción profesional.' },
           { role: 'user', content: prompt }
