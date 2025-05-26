@@ -13,6 +13,7 @@
         <p id="intro">¡Hola! Soy tu asistente para mejorar la comunicación escrita en tus correos electrónicos.</p>
         <form id="correoForm">
             <button type="submit">Mejorar correo</button>
+            <button type="button" id="traducirBtn">Traducir a inglés</button>
         </form>
         <div id="resultado" class="hidden">
             <h2>Correo Mejorado</h2>
@@ -20,6 +21,11 @@
             <h3>Explicación de mejoras</h3>
             <ul id="explicaciones"></ul>
             <button id="volver">Revisar otro correo</button>
+        </div>
+        <div id="traduccionResultado" class="hidden">
+            <h2>Correo Traducido</h2>
+            <pre id="correoTraducido"></pre>
+            <button id="volverTraduccion">Volver</button>
         </div>
         <div id="cargando" class="hidden">Procesando... Por favor espera.</div>
         <div id="error" class="hidden"></div>
