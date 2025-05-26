@@ -167,7 +167,22 @@ Office.onReady(function(info) {
         });
 
         volverBtn.addEventListener('click', function () {
-            mostrarFormularioPrincipal();
+            // Obtener el contenido del correo mejorado
+            const improvedEmailContent = correoMejorado.textContent;
+
+            // Insertar el contenido en el cuerpo del correo de Outlook
+            Office.context.mailbox.item.body.setAsync(improvedEmailContent, { coercionType: Office.CoercionType.Html }, function (asyncResult) {
+                if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
+                    console.log('Correo mejorado pegado en Outlook.');
+                    // Opcional: Volver a la pantalla principal después de pegar
+                    mostrarFormularioPrincipal();
+                } else {
+                    console.error('Error al pegar el correo mejorado en Outlook: ' + asyncResult.error.message);
+                    // Mostrar un mensaje de error al usuario si es necesario
+                    errorDiv.textContent = 'Error al pegar el correo en Outlook: ' + asyncResult.error.message;
+                    errorDiv.classList.remove('hidden');
+                }
+            });
         });
 
         volverTraduccionBtn.addEventListener('click', function () {
