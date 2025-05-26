@@ -6,7 +6,6 @@ Office.onReady(function(info) {
         const form = document.getElementById('correoForm');
         const resultado = document.getElementById('resultado');
         const correoMejorado = document.getElementById('correoMejorado');
-        const explicaciones = document.getElementById('explicaciones');
         const cargando = document.getElementById('cargando');
         const errorDiv = document.getElementById('error');
         const volverBtn = document.getElementById('volver');
@@ -21,7 +20,6 @@ Office.onReady(function(info) {
             traduccionResultado.classList.add('hidden');
             cargando.classList.remove('hidden');
             errorDiv.classList.add('hidden');
-            explicaciones.innerHTML = '';
             correoMejorado.textContent = '';
             correoTraducido.textContent = '';
         }
@@ -119,11 +117,6 @@ Office.onReady(function(info) {
                         if (!response.ok) throw new Error('Error al comunicarse con el servidor');
                         const data = await response.json();
                         correoMejorado.textContent = data.correoMejorado;
-                        data.explicaciones.forEach(exp => {
-                            const li = document.createElement('li');
-                            li.textContent = exp;
-                            explicaciones.appendChild(li);
-                        });
                         cargando.classList.add('hidden');
                         resultado.classList.remove('hidden');
                     } catch (err) {
