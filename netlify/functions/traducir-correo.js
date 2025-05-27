@@ -29,7 +29,7 @@ exports.handler = async (event) => {
             };
         }
 
-        const prompt = `Detecta el idioma de este texto y tradúcelo al idioma opuesto (si es español, a inglés; si es inglés, a español). Es ABSOLUTAMENTE CRÍTICO que mantengas TODO el formato original, incluyendo todos los saltos de línea (simples y dobles), espacios en blanco y la estructura del texto. No añadas ni quites nada que no sea la traducción directa. Solo proporciona la traducción.`;
+        const prompt = `Detecta el idioma de este texto y tradúcelo al idioma opuesto (si es español, a inglés; si es inglés, a español). Es ABSOLUTAMENTE CRÍTICO que mantengas TODO el formato original, incluyendo todos los saltos de línea (simples y dobles), espacios en blanco y la estructura del texto. Asegúrate de incluir TODAS las líneas del texto original en la traducción, incluso si son solo saltos de línea al final. No añadas ni quites nada que no sea la traducción directa. Solo proporciona la traducción.`;
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
