@@ -5,7 +5,7 @@
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
   xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
   xsi:type="MailApp">
-  <Id>6e1e4897-f5e7-4f0b-b4b1-2e67c2c92b6a</Id>
+  <Id>6e1e4897-f5e7-4f0b-b4b1-2e67c2c92b6b</Id>
   <Version>1.0.0.0</Version>
   <ProviderName>Asistente de Redacción</ProviderName>
   <DefaultLocale>es-ES</DefaultLocale>
