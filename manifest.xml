@@ -11,8 +11,8 @@
   <DefaultLocale>es-ES</DefaultLocale>
   <DisplayName DefaultValue="Asistente de Redacción de Correos" />
   <Description DefaultValue="Ayuda a mejorar la redacción de tus correos electrónicos, haciéndolos más formales, claros y efectivos." />
-  <IconUrl DefaultValue="https://outlook-ai-asistente.netlify.app/assets/icon-64.png" />
-  <HighResolutionIconUrl DefaultValue="https://outlook-ai-asistente.netlify.app/assets/icon-128.png" />
+  <IconUrl DefaultValue="https://outlook-ai-asistente.netlify.app/assets/new_logo.png" />
+  <HighResolutionIconUrl DefaultValue="https://outlook-ai-asistente.netlify.app/assets/new_logo.png" />
   <SupportUrl DefaultValue="https://www.contoso.com/help" />
   <AppDomains>
     <AppDomain>https://outlook-ai-asistente.netlify.app</AppDomain>
@@ -74,9 +74,9 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://outlook-ai-asistente.netlify.app/assets/icon-16.png" />
-        <bt:Image id="Icon.32x32" DefaultValue="https://outlook-ai-asistente.netlify.app/assets/icon-32.png" />
-        <bt:Image id="Icon.80x80" DefaultValue="https://outlook-ai-asistente.netlify.app/assets/icon-80.png" />
+        <bt:Image id="Icon.16x16" DefaultValue="https://outlook-ai-asistente.netlify.app/assets/new_logo.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="https://outlook-ai-asistente.netlify.app/assets/new_logo.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="https://outlook-ai-asistente.netlify.app/assets/new_logo.png" />
       </bt:Images>
       <bt:Urls>
         <bt:Url id="Commands.Url" DefaultValue="https://outlook-ai-asistente.netlify.app/commands.html" />
