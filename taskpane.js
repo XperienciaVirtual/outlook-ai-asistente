@@ -144,13 +144,29 @@ Office.onReady(function(info) {
             Office.context.mailbox.item.body.getAsync(Office.CoercionType.Html, async function (asyncResult) {
                 if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
                     const htmlContent = asyncResult.value;
+                    // Pre-procesar el HTML para preservar saltos de línea
+                    let processedHtml = htmlContent;
+                    // Reemplazar <br> con un marcador de posición
+                    processedHtml = processedHtml.replace(/<br\s*\/?>/gi, '[BR_PLACEHOLDER]');
+                    // Reemplazar </p> con un marcador de posición de doble salto de línea
+                    processedHtml = processedHtml.replace(/<\/p>/gi, '[P_PLACEHOLDER]');
+                    // Reemplazar </div> con un marcador de posición de salto de línea si es un div de bloque
+                    processedHtml = processedHtml.replace(/<\/div>/gi, '[DIV_PLACEHOLDER]');
+
+                    // Crear un elemento temporal para parsear el HTML y obtener el texto plano
                     const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = htmlContent;
+                    tempDiv.innerHTML = processedHtml;
                     let texto = tempDiv.textContent || tempDiv.innerText || '';
 
+                    // Reemplazar los marcadores de posición con saltos de línea reales
+                    texto = texto.replace(/\[BR_PLACEHOLDER\]/g, '\n');
+                    texto = texto.replace(/\[P_PLACEHOLDER\]/g, '\n\n');
+                    texto = texto.replace(/\[DIV_PLACEHOLDER\]/g, '\n');
+
+                    // Eliminar la firma del correo si existe
                     texto = eliminarFirma(texto);
 
-                    console.log('Texto enviado a la función de traducción (después de HTML parse):', texto); // <-- Añadido para depuración
+                    console.log('Texto enviado a la función de traducción (después de HTML parse y re-formato):', texto); // <-- Actualizado para depuración
                     try {
                         cargando.classList.remove('hidden');
                         // Usar fetchWithRetry para la llamada a la función serverless de traducción
