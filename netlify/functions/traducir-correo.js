@@ -30,13 +30,13 @@ exports.handler = async (event) => {
             };
         }
 
-        const prompt = `Detecta el idioma de este texto y tradúcelo al idioma opuesto (si es español, a inglés; si es inglés, a español). Es ABSOLUTAMENTE CRÍTICO que mantengas TODO el formato original, incluyendo todos los saltos de línea (simples y dobles), espacios en blanco y la estructura del texto. Asegúrate de incluir TODAS las líneas del texto original en la traducción, incluso si son solo saltos de línea al final. No añadas ni quites nada que no sea la traducción directa. Solo proporciona la traducción.`;
+        const prompt = `Detecta el idioma de este contenido HTML y tradúcelo al idioma opuesto (si es español, a inglés; si es inglés, a español). Es ABSOLUTAMENTE CRÍTICO que extraigas el texto del HTML y mantengas TODO el formato original, incluyendo todos los saltos de línea (simples y dobles), espacios en blanco y la estructura de los párrafos. Asegúrate de incluir TODAS las líneas del texto original en la traducción, incluso si son solo saltos de línea al final. No añadas ni quites nada que no sea la traducción directa. Solo proporciona la traducción en texto plano, sin HTML.`;
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
             messages: [
-                { role: 'system', content: 'Eres un traductor profesional que respeta el formato original del texto, incluyendo saltos de línea y espacios en blanco.' },
-                { role: 'user', content: prompt + '\n\nTexto original:\n' + texto }
+                { role: 'system', content: 'Eres un traductor profesional que procesa contenido HTML, extrae el texto y lo traduce, respetando el formato original del texto, incluyendo saltos de línea y espacios en blanco. La salida debe ser texto plano.' },
+                { role: 'user', content: prompt + '\n\nContenido HTML original:\n' + texto }
             ],
             temperature: 0.7,
             max_tokens: 4000,
