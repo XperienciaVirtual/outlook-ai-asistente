@@ -147,6 +147,7 @@ Office.onReady(function(info) {
                     const correoSinFirma = eliminarFirma(correoCompleto);
 
                     try {
+                        console.log('Texto enviado a la función de traducción:', correoSinFirma); // <-- Añadido para depuración
                         // Usar fetchWithRetry para la llamada a la función serverless de traducción
                         const response = await fetchWithRetry('/.netlify/functions/traducir-correo', {
                             method: 'POST',

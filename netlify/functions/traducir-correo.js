@@ -21,6 +21,7 @@ exports.handler = async (event) => {
 
     try {
         const { texto } = JSON.parse(event.body || '{}');
+        console.log('Texto recibido en la función de traducción:', texto);
 
         if (!texto) {
             return {
