@@ -119,7 +119,7 @@ Office.onReady(function(info) {
                         });
                         if (!response.ok) throw new Error('Error al comunicarse con el servidor');
                         const data = await response.json();
-                        correoMejorado.innerHTML = data.correoMejorado.replace(/\n/g, '<br>');
+                        correoMejorado.innerHTML = data.correoMejorado.replace(/\r?\n/g, '<br>');
                         cargando.classList.add('hidden');
                         resultado.classList.remove('hidden');
                         instruccionesAdicionales.value = '';
@@ -155,7 +155,7 @@ Office.onReady(function(info) {
                         });
                         if (!response.ok) throw new Error('Error al comunicarse con el servidor de traducción');
                         const data = await response.json();
-                        correoTraducido.innerHTML = data.textoTraducido.replace(/\n/g, '<br>');
+                        correoTraducido.innerHTML = data.textoTraducido.replace(/\r?\n/g, '<br>');
                         cargando.classList.add('hidden');
                         traduccionResultado.classList.remove('hidden');
                     } catch (err) {

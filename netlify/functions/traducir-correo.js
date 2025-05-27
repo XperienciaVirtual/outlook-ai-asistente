@@ -29,16 +29,16 @@ exports.handler = async (event) => {
             };
         }
 
-        const prompt = `Detecta el idioma de este texto y tradúcelo al idioma opuesto (si es español, a inglés; si es inglés, a español). Mantén el formato original, incluyendo saltos de línea. Solo proporciona la traducción, sin explicaciones adicionales.`;
+        const prompt = `Detecta el idioma de este texto y tradúcelo al idioma opuesto (si es español, a inglés; si es inglés, a español). Es CRÍTICO que mantengas EXACTAMENTE el formato original, incluyendo todos los saltos de línea, dobles saltos de línea y cualquier espaciado. Solo proporciona la traducción, sin explicaciones adicionales.`;
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
             messages: [
-                { role: 'system', content: 'Eres un traductor profesional. Solo proporcionas la traducción solicitada.' },
+                { role: 'system', content: 'Eres un traductor profesional. Solo proporcionas la traducción solicitada y respetas el formato.' },
                 { role: 'user', content: prompt + '\n\nTexto original:\n' + texto }
             ],
             temperature: 0.7,
-            max_tokens: 1000,
+            max_tokens: 4000,
         });
 
         const textoTraducido = completion.choices[0].message.content.trim();
