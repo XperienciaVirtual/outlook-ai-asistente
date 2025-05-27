@@ -8,8 +8,8 @@ exports.handler = async function(event, context) {
     };
   }
 
-  const { correo } = JSON.parse(event.body || '{}'); // Solo esperamos 'correo'
-  if (!correo) { // Solo verificamos que 'correo' exista
+  const { correo, instrucciones } = JSON.parse(event.body || '{}'); // Ahora esperamos 'correo' e 'instrucciones'
+  if (!correo) {
     return {
       statusCode: 400,
       body: JSON.stringify({ error: 'Faltan datos requeridos: correo' })
@@ -17,7 +17,11 @@ exports.handler = async function(event, context) {
   }
 
   // Construir el prompt adaptado para solo usar el contenido del correo
-  const prompt = `Eres un asistente experto en redacción de correos electrónicos. Tu tarea es mejorar el siguiente correo, corrigiendo ortografía y gramática, sugiriendo mejoras de estructura y expresiones para que sea más formal, claro y efectivo, pero respetando al 100% la primera frase y el tono original. No añadas adjetivos ni cambies el encabezado. Habla en singular si el texto está en primera persona. **IMPORTANTE: Devuelve ÚNICAMENTE el correo mejorado, sin ningún prefijo como 'Correo mejorado:', 'Aquí tienes el correo mejorado:', o similar. No incluyas explicaciones de las mejoras.**\n\nCorreo original:\n${correo}`;
+  let prompt = `Eres un asistente experto en redacción de correos electrónicos. Tu tarea es mejorar el siguiente correo, corrigiendo ortografía y gramática, sugiriendo mejoras de estructura y expresiones para que sea más formal, claro y efectivo, pero respetando al 100% la primera frase y el tono original. No añadas adjetivos ni cambies el encabezado. Habla en singular si el texto está en primera persona. **IMPORTANTE: Devuelve ÚNICAMENTE el correo mejorado, sin ningún prefijo como 'Correo mejorado:', 'Aquí tienes el correo mejorado:', o similar. No incluyas explicaciones de las mejoras.**\n\nCorreo original:\n${correo}`;
+
+  if (instrucciones) {
+    prompt += `\n\nInstrucciones adicionales: ${instrucciones}`;
+  }
 
   try {
     const apiKey = process.env.OPENAI_API_KEY;

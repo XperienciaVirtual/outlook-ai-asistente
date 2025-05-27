@@ -13,6 +13,7 @@ Office.onReady(function(info) {
         const traduccionResultado = document.getElementById('traduccionResultado');
         const correoTraducido = document.getElementById('correoTraducido');
         const volverTraduccionBtn = document.getElementById('volverTraduccion');
+        const instruccionesAdicionales = document.getElementById('instruccionesAdicionales');
 
         // Función para limpiar el estado y mostrar la sección de carga
         function mostrarCargando() {
@@ -31,6 +32,7 @@ Office.onReady(function(info) {
             traduccionResultado.classList.add('hidden');
             cargando.classList.add('hidden');
             errorDiv.classList.add('hidden');
+            instruccionesAdicionales.value = '';
         }
 
         // Función de reintento con retroceso exponencial
@@ -106,23 +108,26 @@ Office.onReady(function(info) {
             Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, async function (asyncResult) {
                 if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
                     const correoContent = asyncResult.value;
+                    const instrucciones = instruccionesAdicionales.value.trim();
 
                     try {
                         // Usar fetchWithRetry para la llamada a la función serverless
                         const response = await fetchWithRetry('/.netlify/functions/mejorar-correo', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ correo: correoContent })
+                            body: JSON.stringify({ correo: correoContent, instrucciones: instrucciones })
                         });
                         if (!response.ok) throw new Error('Error al comunicarse con el servidor');
                         const data = await response.json();
                         correoMejorado.textContent = data.correoMejorado;
                         cargando.classList.add('hidden');
                         resultado.classList.remove('hidden');
+                        instruccionesAdicionales.value = '';
                     } catch (err) {
                         cargando.classList.add('hidden');
                         errorDiv.textContent = err.message || 'Error inesperado.';
                         errorDiv.classList.remove('hidden');
+                        instruccionesAdicionales.value = '';
                     }
                 } else {
                     cargando.classList.add('hidden');
