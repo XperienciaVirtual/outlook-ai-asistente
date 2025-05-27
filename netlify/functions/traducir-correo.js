@@ -29,15 +29,13 @@ exports.handler = async (event) => {
             };
         }
 
-        const prompt = `Traduce el siguiente texto al inglés. Solo proporciona la traducción, sin explicaciones adicionales:
-
-${texto}`;
+        const prompt = `Detecta el idioma de este texto y tradúcelo al idioma opuesto (si es español, a inglés; si es inglés, a español). Mantén el formato original, incluyendo saltos de línea. Solo proporciona la traducción, sin explicaciones adicionales.`;
 
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o', // Usar el modelo gpt-4o para la traducción
+            model: 'gpt-4o',
             messages: [
                 { role: 'system', content: 'Eres un traductor profesional. Solo proporcionas la traducción solicitada.' },
-                { role: 'user', content: prompt }
+                { role: 'user', content: prompt + '\n\nTexto original:\n' + texto }
             ],
             temperature: 0.7,
             max_tokens: 1000,

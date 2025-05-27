@@ -5,5 +5,7 @@
   "dependencies": {
     "node-fetch": "^2.6.7",
     "openai": "^4.x.x"
+  },
+  "devDependencies": {
   }
 }
