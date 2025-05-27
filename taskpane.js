@@ -141,18 +141,23 @@ Office.onReady(function(info) {
             e.preventDefault();
             mostrarCargando();
 
-            Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, async function (asyncResult) {
+            Office.context.mailbox.item.body.getAsync(Office.CoercionType.Html, async function (asyncResult) {
                 if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
-                    const correoCompleto = asyncResult.value;
-                    const correoSinFirma = eliminarFirma(correoCompleto);
+                    const htmlContent = asyncResult.value;
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = htmlContent;
+                    let texto = tempDiv.textContent || tempDiv.innerText || '';
 
+                    texto = eliminarFirma(texto);
+
+                    console.log('Texto enviado a la función de traducción (después de HTML parse):', texto); // <-- Añadido para depuración
                     try {
-                        console.log('Texto enviado a la función de traducción:', correoSinFirma); // <-- Añadido para depuración
+                        cargando.classList.remove('hidden');
                         // Usar fetchWithRetry para la llamada a la función serverless de traducción
                         const response = await fetchWithRetry('/.netlify/functions/traducir-correo', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ texto: correoSinFirma })
+                            body: JSON.stringify({ texto: texto })
                         });
                         if (!response.ok) throw new Error('Error al comunicarse con el servidor de traducción');
                         const data = await response.json();
