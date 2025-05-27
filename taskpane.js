@@ -21,8 +21,8 @@ Office.onReady(function(info) {
             traduccionResultado.classList.add('hidden');
             cargando.classList.remove('hidden');
             errorDiv.classList.add('hidden');
-            correoMejorado.textContent = '';
-            correoTraducido.textContent = '';
+            correoMejorado.innerHTML = '';
+            correoTraducido.innerHTML = '';
         }
 
         // Función para mostrar solo el formulario principal
@@ -119,7 +119,7 @@ Office.onReady(function(info) {
                         });
                         if (!response.ok) throw new Error('Error al comunicarse con el servidor');
                         const data = await response.json();
-                        correoMejorado.textContent = data.correoMejorado;
+                        correoMejorado.innerHTML = data.correoMejorado.replace(/\n/g, '<br>');
                         cargando.classList.add('hidden');
                         resultado.classList.remove('hidden');
                         instruccionesAdicionales.value = '';
@@ -155,7 +155,7 @@ Office.onReady(function(info) {
                         });
                         if (!response.ok) throw new Error('Error al comunicarse con el servidor de traducción');
                         const data = await response.json();
-                        correoTraducido.textContent = data.textoTraducido;
+                        correoTraducido.innerHTML = data.textoTraducido.replace(/\n/g, '<br>');
                         cargando.classList.add('hidden');
                         traduccionResultado.classList.remove('hidden');
                     } catch (err) {
@@ -173,7 +173,7 @@ Office.onReady(function(info) {
 
         volverBtn.addEventListener('click', function () {
             // Obtener el contenido del correo mejorado
-            const improvedEmailContent = correoMejorado.textContent;
+            const improvedEmailContent = correoMejorado.innerHTML;
 
             // Insertar el contenido en el cuerpo del correo de Outlook
             Office.context.mailbox.item.body.setAsync(improvedEmailContent, { coercionType: Office.CoercionType.Html }, function (asyncResult) {
@@ -192,7 +192,7 @@ Office.onReady(function(info) {
 
         volverTraduccionBtn.addEventListener('click', function () {
             // Obtener el contenido del correo traducido
-            const translatedEmailContent = correoTraducido.textContent;
+            const translatedEmailContent = correoTraducido.innerHTML;
 
             // Insertar el contenido en el cuerpo del correo de Outlook
             Office.context.mailbox.item.body.setAsync(translatedEmailContent, { coercionType: Office.CoercionType.Html }, function (asyncResult) {
