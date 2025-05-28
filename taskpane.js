@@ -111,13 +111,13 @@ Office.onReady(function(info) {
                     const correoSinFirma = eliminarFirma(correoContent);
                     const instruccionesAdicionalesValue = instruccionesAdicionales.value;
 
-                    let prompt = `Mejora la redacción y ortografía de este correo electrónico. Mantén el tono profesional y el significado original. ES CRÍTICO: Respeta EXACTAMENTE la estructura del saludo inicial si lo hubiera. ES CRÍTICO: Elimina COMPLETAMENTE el nombre del remitente y la despedida final del mensaje.`;
+                    let prompt = `Mejora la redacción y ortografía de este correo electrónico. Mantén el tono profesional y el significado original. INSTRUCCIONES CRÍTICAS Y OBLIGATORIAS: 1. Respeta EXACTAMENTE la estructura y el contenido del saludo inicial (ej. 'Estimado Juan,', 'Hola equipo,') si lo hubiera. NO LO ALTERES. 2. Elimina COMPLETAMENTE cualquier nombre de remitente, firma, o despedida final (ej. 'Saludos, Daniel', 'Atentamente,', 'Gracias,') del mensaje. NO DEBE APARECER EN LA SALIDA.`;
 
                     if (instruccionesAdicionalesValue) {
                         prompt += `\n\nInstrucciones adicionales: ${instruccionesAdicionalesValue}`; 
                     }
 
-                    prompt += `\n\nCorreo original:\n${correoSinFirma}`;
+                    prompt += `\n\nCorreo original:\n${correoSinFirma}`; 
 
                     try {
                         // Usar fetchWithRetry para la llamada a la función serverless

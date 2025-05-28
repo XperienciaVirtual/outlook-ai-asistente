@@ -20,6 +20,7 @@ exports.handler = async (event) => {
     const openai = new OpenAI({ apiKey: apiKey });
 
     try {
+        console.log('Contenido bruto de event.body:', event.body); // Añadido para depuración
         let body;
         try {
             body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
@@ -31,6 +32,7 @@ exports.handler = async (event) => {
             };
         }
         const { texto } = body;
+        console.log('Valor de texto después del parseo:', texto); // Añadido para depuración
         console.log('Texto recibido en la función de traducción:', texto);
 
         if (!texto) {
