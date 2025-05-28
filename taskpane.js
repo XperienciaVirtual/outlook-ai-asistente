@@ -67,6 +67,51 @@ Office.onReady(function(info) {
         mostrarFormularioPrincipal();
 
         // Esta versión se usará para procesar la salida del modelo, si es necesario.
+        function extraerCuerpoPrincipal(texto) {
+            const lineas = texto.split(/\r?\n/);
+            let lastBodyLineIndex = lineas.length - 1;
+
+            const patronesDespedidaOInicioFirma = [
+                /^--/,
+                /saludos/i,
+                /atentamente/i,
+                /gracias/i,
+                /un saludo/i,
+                /best regards/i,
+                /cordialmente/i,
+                /a la espera/i,
+                /esperando su respuesta/i,
+                /sinceramente/i,
+                /atte\./i,
+                /suyo/i,
+                /respetuosamente/i,
+                /kind regards/i,
+                /^(daniel|juan|maria|pedro|ana)[\s\S]*$/i // Nombres comunes al inicio de una firma
+            ];
+
+            for (let i = lineas.length - 1; i >= 0; i--) {
+                const linea = lineas[i].trim();
+
+                let esDespedidaOInicioFirma = false;
+                for (const patron of patronesDespedidaOInicioFirma) {
+                    if (patron.test(linea)) {
+                        esDespedidaOInicioFirma = true;
+                        break;
+                    }
+                }
+
+                if (linea.length === 0 || esDespedidaOInicioFirma) {
+                    lastBodyLineIndex = i - 1;
+                } else {
+                    break; // Hemos encontrado una línea que no es vacía ni una despedida/firma
+                }
+            }
+
+            if (lastBodyLineIndex < 0) lastBodyLineIndex = 0;
+
+            return lineas.slice(0, lastBodyLineIndex + 1).join('\n').trim();
+        }
+
         function eliminarFirma(texto) {
             const lineas = texto.split(/\r?\n/);
             let lastBodyLineIndex = lineas.length - 1;
@@ -126,6 +171,7 @@ Office.onReady(function(info) {
             Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, async function (asyncResult) {
                 if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
                     const correoContent = asyncResult.value; // Obtenemos el contenido completo
+                    const correoSoloCuerpo = extraerCuerpoPrincipal(correoContent); // Pre-procesamos aquí
                     const instruccionesAdicionalesValue = instruccionesAdicionales.value;
 
                     // Reforzar el prompt para que el modelo elimine la firma y despedida
@@ -151,7 +197,7 @@ Tu respuesta NO DEBE INCLUIR NADA de eso. El correo mejorado debe terminar justo
                         prompt += `\nInstrucciones adicionales: ${instruccionesAdicionalesValue}`; 
                     }
 
-                    prompt += `\n\nCorreo original:\n${correoContent}`; // Enviamos el contenido completo
+                    prompt += `\n\nCorreo original:\n${correoSoloCuerpo}`; // Enviamos solo el cuerpo
 
                     try {
                         // Usar fetchWithRetry para la llamada a la función serverless
