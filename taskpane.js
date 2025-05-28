@@ -67,6 +67,7 @@ Office.onReady(function(info) {
         mostrarFormularioPrincipal();
 
         // Función heurística para intentar eliminar la firma del correo
+        // Esta versión se usará para procesar la salida del modelo, si es necesario.
         function eliminarFirma(texto) {
             const lineas = texto.split(/\r?\n/);
             let lastBodyLineIndex = lineas.length - 1;
@@ -75,17 +76,21 @@ Office.onReady(function(info) {
             for (let i = lineas.length - 1; i >= 0; i--) {
                 const linea = lineas[i].trim();
 
-                // Patrones comunes de inicio de firma o despedida
+                // Patrones comunes de inicio de firma o despedida, incluyendo despedidas
                 if (linea.startsWith('--') || // Separador de firma
                     linea.toLowerCase().includes('saludos') ||
                     linea.toLowerCase().includes('atentamente') ||
-                    linea.toLowerCase().includes('gracias') || // Incluir "Gracias," como un posible marcador de fin de cuerpo
+                    linea.toLowerCase().includes('gracias') ||
                     linea.toLowerCase().includes('un saludo') ||
                     linea.toLowerCase().includes('best regards') ||
-                    linea.toLowerCase().includes('cordialmente') || // Añadido
-                    linea.toLowerCase().includes('a la espera') || // Añadido
-                    linea.toLowerCase().includes('esperando su respuesta') || // Añadido
-                    linea.toLowerCase().includes('sinceramente') || // Añadido
+                    linea.toLowerCase().includes('cordialmente') ||
+                    linea.toLowerCase().includes('a la espera') ||
+                    linea.toLowerCase().includes('esperando su respuesta') ||
+                    linea.toLowerCase().includes('sinceramente') ||
+                    linea.toLowerCase().includes('atte.') || // Añadido
+                    linea.toLowerCase().includes('suyo') || // Añadido
+                    linea.toLowerCase().includes('respetuosamente') || // Añadido
+                    linea.toLowerCase().includes('kind regards') || // Añadido
                     // Heurística para una sola línea de nombre después de una línea vacía (ej. "Daniel Casado")
                     (linea.match(/^[a-z\s]+$/i) && linea.length < 30 && i > 0 && lineas[i-1].trim().length === 0)
                     ) {
@@ -111,17 +116,18 @@ Office.onReady(function(info) {
 
             Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, async function (asyncResult) {
                 if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
-                    const correoContent = asyncResult.value;
-                    const correoSinFirma = eliminarFirma(correoContent);
+                    const correoContent = asyncResult.value; // Obtenemos el contenido completo
+                    // const correoSinFirma = eliminarFirma(correoContent); // Ya no pre-procesamos con eliminarFirma
                     const instruccionesAdicionalesValue = instruccionesAdicionales.value;
 
-                    let prompt = `Mejora la redacción y ortografía de este correo electrónico. Mantén el tono profesional y el significado original. INSTRUCCIONES CRÍTICAS Y OBLIGATORIAS: 1. Respeta EXACTAMENTE la estructura y el contenido del saludo inicial (ej. 'Estimado Juan,', 'Hola equipo,') si lo hubiera. NO LO ALTERES. 2. La salida NO DEBE INCLUIR NINGÚN nombre de remitente, firma, o despedida final (ej. 'Saludos, Daniel', 'Atentamente,', 'Gracias,'). Identifica esta sección final del correo y omítela completamente de tu respuesta.`;
+                    // Reforzar el prompt para que el modelo elimine la firma y despedida
+                    let prompt = `Mejora la redacción y ortografía de este correo electrónico. Mantén el tono profesional y el significado original. INSTRUCCIONES CRÍTICAS Y OBLIGATORIAS: 1. Respeta EXACTAMENTE la estructura y el contenido del saludo inicial (ej. 'Estimado Juan,', 'Hola equipo,') si lo hubiera. NO LO ALTERES. 2. La salida NO DEBE INCLUIR NINGÚN nombre de remitente, firma, o despedida final (ej. 'Saludos, Daniel', 'Atentamente,', 'Gracias,', 'Quedo a la espera', 'Un saludo', 'Atte.'). OMITE COMPLETAMENTE ESTAS SECCIONES FINALES.`;
 
                     if (instruccionesAdicionalesValue) {
                         prompt += `\n\nInstrucciones adicionales: ${instruccionesAdicionalesValue}`; 
                     }
 
-                    prompt += `\n\nCorreo original:\n${correoSinFirma}`; 
+                    prompt += `\n\nCorreo original:\n${correoContent}`; // Enviamos el contenido completo
 
                     try {
                         // Usar fetchWithRetry para la llamada a la función serverless
@@ -132,7 +138,11 @@ Office.onReady(function(info) {
                         });
                         if (!response.ok) throw new Error('Error al comunicarse con el servidor');
                         const data = await response.json();
-                        correoMejorado.innerHTML = data.correoMejorado.replace(/\r?\n/g, '<br>');
+                        
+                        // Aplicar eliminarFirma a la respuesta del modelo como post-procesamiento
+                        const correoMejoradoFinal = eliminarFirma(data.correoMejorado);
+                        correoMejorado.innerHTML = correoMejoradoFinal.replace(/\r?\n/g, '<br>');
+                        
                         cargando.classList.add('hidden');
                         resultado.classList.remove('hidden');
                         instruccionesAdicionales.value = '';
