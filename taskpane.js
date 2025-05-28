@@ -82,6 +82,10 @@ Office.onReady(function(info) {
                     linea.toLowerCase().includes('gracias') || // Incluir "Gracias," como un posible marcador de fin de cuerpo
                     linea.toLowerCase().includes('un saludo') ||
                     linea.toLowerCase().includes('best regards') ||
+                    linea.toLowerCase().includes('cordialmente') || // Añadido
+                    linea.toLowerCase().includes('a la espera') || // Añadido
+                    linea.toLowerCase().includes('esperando su respuesta') || // Añadido
+                    linea.toLowerCase().includes('sinceramente') || // Añadido
                     // Heurística para una sola línea de nombre después de una línea vacía (ej. "Daniel Casado")
                     (linea.match(/^[a-z\s]+$/i) && linea.length < 30 && i > 0 && lineas[i-1].trim().length === 0)
                     ) {
