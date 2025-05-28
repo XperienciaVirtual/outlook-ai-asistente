@@ -111,7 +111,7 @@ Office.onReady(function(info) {
                     const correoSinFirma = eliminarFirma(correoContent);
                     const instruccionesAdicionalesValue = instruccionesAdicionales.value;
 
-                    let prompt = `Mejora la redacción y ortografía de este correo electrónico. Mantén el tono profesional y el significado original. INSTRUCCIONES CRÍTICAS Y OBLIGATORIAS: 1. Respeta EXACTAMENTE la estructura y el contenido del saludo inicial (ej. 'Estimado Juan,', 'Hola equipo,') si lo hubiera. NO LO ALTERES. 2. Elimina COMPLETAMENTE cualquier nombre de remitente, firma, o despedida final (ej. 'Saludos, Daniel', 'Atentamente,', 'Gracias,') del mensaje. NO DEBE APARECER EN LA SALIDA.`;
+                    let prompt = `Mejora la redacción y ortografía de este correo electrónico. Mantén el tono profesional y el significado original. INSTRUCCIONES CRÍTICAS Y OBLIGATORIAS: 1. Respeta EXACTAMENTE la estructura y el contenido del saludo inicial (ej. 'Estimado Juan,', 'Hola equipo,') si lo hubiera. NO LO ALTERES. 2. La salida NO DEBE INCLUIR NINGÚN nombre de remitente, firma, o despedida final (ej. 'Saludos, Daniel', 'Atentamente,', 'Gracias,'). Identifica esta sección final del correo y omítela completamente de tu respuesta.`;
 
                     if (instruccionesAdicionalesValue) {
                         prompt += `\n\nInstrucciones adicionales: ${instruccionesAdicionalesValue}`; 
@@ -153,9 +153,11 @@ Office.onReady(function(info) {
             Office.context.mailbox.item.body.getAsync(Office.CoercionType.Html, async function (asyncResult) {
                 if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
                     const htmlContent = asyncResult.value;
+                    console.log('Contenido HTML obtenido de Outlook:', htmlContent); // Nuevo log
 
                     // Eliminar la firma del correo si existe (esto aún se aplica al HTML si la firma es texto simple)
                     const textoParaEnviar = eliminarFirma(htmlContent); // Ahora enviamos el HTML
+                    console.log('Texto a enviar a la función de traducción (después de eliminar firma):', textoParaEnviar); // Nuevo log
 
                     console.log('HTML enviado a la función de traducción:', textoParaEnviar); // <-- Actualizado para depuración
                     try {
