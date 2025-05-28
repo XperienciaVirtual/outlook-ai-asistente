@@ -81,63 +81,69 @@ Office.onReady(function(info) {
                 /project manager/i, /director/i, /ceo/i, /gerente/i, /sales/i, /marketing/i // Títulos de cargo
             ];
 
-            let foundPotentialSignatureStart = false;
+            let foundSignatureStart = -1; // Índice donde la firma realmente comienza
 
             for (let i = lineas.length - 1; i >= 0; i--) {
                 const linea = lineas[i].trim();
 
+                // 1. Si la línea está vacía
                 if (linea.length === 0) {
-                    if (foundPotentialSignatureStart) {
+                    if (foundSignatureStart !== -1) {
+                        // Si ya habíamos encontrado un componente de firma, y ahora hay una línea vacía,
+                        // significa que el cuerpo termina antes de esta línea vacía.
                         lastBodyLineIndex = i;
-                        break;
+                        break; // Hemos encontrado el final del cuerpo
                     }
-                    continue; // Continuar buscando si es solo una línea vacía sin haber encontrado antes una firma
+                    continue; // Ignorar líneas vacías al principio de la búsqueda
                 }
 
-                let isSignatureComponent = false;
+                // 2. Comprobar si la línea es una frase de despedida (y nada más)
+                const isGreetingLike = /^(saludos|un saludo|saludos cordiales|cordialmente|atte\.|sinceramente|best regards|kind regards),?$/i.test(linea);
+                if (isGreetingLike) {
+                    // Si es una despedida y NO hemos encontrado aún un componente de firma CLARO,
+                    // entonces esta línea es parte del cuerpo. Detenemos la búsqueda de firma aquí.
+                    if (foundSignatureStart === -1) {
+                        lastBodyLineIndex = i; // La despedida es parte del cuerpo
+                        break; // Hemos encontrado el final del cuerpo
+                    }
+                    // Si ya habíamos encontrado un componente de firma, esta despedida es parte de la firma.
+                }
+
+                // 3. Comprobar si la línea contiene un componente de firma claro
+                let isClearSignatureComponent = false;
                 for (const patron of patronesFirmaOInicioFirma) {
                     if (patron.test(linea)) {
-                        isSignatureComponent = true;
+                        isClearSignatureComponent = true;
                         break;
                     }
                 }
 
-                if (isSignatureComponent) {
-                    foundPotentialSignatureStart = true;
-                    lastBodyLineIndex = i;
+                if (isClearSignatureComponent) {
+                    foundSignatureStart = i; // Marcar esta línea como el posible inicio de la firma
+                    lastBodyLineIndex = i; // Por ahora, el cuerpo termina aquí
+                } else if (foundSignatureStart !== -1) {
+                    // Si ya habíamos encontrado un componente de firma, y esta línea NO es un componente de firma,
+                    // significa que el cuerpo termina justo antes de 'foundSignatureStart'.
+                    lastBodyLineIndex = foundSignatureStart; // El cuerpo termina en el inicio de la firma
+                    break; // Hemos encontrado el final del cuerpo
                 } else {
-                    // **NUEVA LÓGICA PARA SALUDOS Y SIMILARES**
-                    const isGreetingLike = /^(saludos|un saludo|saludos cordiales|cordialmente|atte\.|sinceramente|best regards|kind regards),?$/i.test(linea);
-
-                    if (isGreetingLike) {
-                        // Si es una despedida como "Saludos" y ya hemos detectado un bloque de firma,
-                        // la consideramos parte de la firma.
-                        if (foundPotentialSignatureStart) {
-                            foundPotentialSignatureStart = true; // Extender el bloque de firma para incluir esta despedida
-                            lastBodyLineIndex = i;
-                        } else {
-                            // Si no hemos detectado un bloque de firma, esta línea es parte del cuerpo.
-                            break;
-                        }
-                    } else if (foundPotentialSignatureStart) {
-                        // Si ya habíamos encontrado una potencial firma, y esta línea no es un componente de firma ni una despedida,
-                        // significa que la firma terminó en la línea anterior.
-                        break;
-                    } else {
-                        // Si no hemos encontrado ninguna potencial firma, y la línea actual no es un componente de firma ni una despedida,
-                        // significa que esta línea es parte del cuerpo y no debemos cortar.
-                        break; 
-                    }
+                    // Si no es un componente de firma, ni una despedida, ni hemos encontrado una firma aún,
+                    // esta línea es parte del cuerpo. Continuar buscando hacia arriba.
+                    lastBodyLineIndex = i; // Mantener el cuerpo extendido
                 }
             }
 
-            // Asegurarse de no cortar el documento entero si no se encuentra firma
-            if (lastBodyLineIndex === lineas.length - 1 && !foundPotentialSignatureStart) {
-                return texto; // No se encontró firma, devolver el texto original
+            // Si no se encontró ninguna firma clara, devolver el texto original
+            if (foundSignatureStart === -1) {
+                return texto;
             }
 
-            // Devolver solo las líneas hasta lastBodyLineIndex (exclusivo, ya que lastBodyLineIndex es el inicio de la firma)
-            return lineas.slice(0, lastBodyLineIndex).join('\n').trim();
+            // Si se encontró un potencial inicio de firma, cortar desde ahí. De lo contrario, devolver todo.
+            if (foundSignatureStart !== -1) {
+                return lineas.slice(0, foundSignatureStart).join('\n').trim();
+            } else {
+                return texto; // No se detectó firma, devolver el texto original completo
+            }
         }
 
         function extraerCuerpoPrincipal(texto) {
@@ -154,66 +160,68 @@ Office.onReady(function(info) {
                 /project manager/i, /director/i, /ceo/i, /gerente/i, /sales/i, /marketing/i // Títulos de cargo
             ];
 
-            let emptyLineCount = 0; // Contador de líneas vacías consecutivas
-            let potentialSignatureStart = -1; // Índice donde podría empezar la firma
+            let foundSignatureStart = -1; // Índice donde la firma realmente comienza
 
             for (let i = lineas.length - 1; i >= 0; i--) {
                 const linea = lineas[i].trim();
 
+                // 1. Si la línea está vacía
                 if (linea.length === 0) {
-                    emptyLineCount++;
-                    if (emptyLineCount >= 2 && potentialSignatureStart !== -1) { // Si hay 2+ líneas vacías Y ya detectamos una potencial firma
+                    if (foundSignatureStart !== -1) {
+                        // Si ya habíamos encontrado un componente de firma, y ahora hay una línea vacía,
+                        // significa que el cuerpo termina antes de esta línea vacía.
                         lastBodyLineIndex = i;
-                        break;
+                        break; // Hemos encontrado el final del cuerpo
                     }
-                    continue; // Seguir buscando si es solo una línea vacía
-                } else {
-                    emptyLineCount = 0; // Resetear el contador si encontramos una línea no vacía
+                    continue; // Ignorar líneas vacías al principio de la búsqueda
                 }
 
-                let isSignatureComponent = false;
+                // 2. Comprobar si la línea es una frase de despedida (y nada más)
+                const isGreetingLike = /^(saludos|un saludo|saludos cordiales|cordialmente|atte\.|sinceramente|best regards|kind regards),?$/i.test(linea);
+                if (isGreetingLike) {
+                    // Si es una despedida y NO hemos encontrado aún un componente de firma CLARO,
+                    // entonces esta línea es parte del cuerpo. Detenemos la búsqueda de firma aquí.
+                    if (foundSignatureStart === -1) {
+                        lastBodyLineIndex = i; // La despedida es parte del cuerpo
+                        break; // Hemos encontrado el final del cuerpo
+                    }
+                    // Si ya habíamos encontrado un componente de firma, esta despedida es parte de la firma.
+                }
+
+                // 3. Comprobar si la línea contiene un componente de firma claro
+                let isClearSignatureComponent = false;
                 for (const patron of patronesFirmaOInicioFirma) {
                     if (patron.test(linea)) {
-                        isSignatureComponent = true;
+                        isClearSignatureComponent = true;
                         break;
                     }
                 }
 
-                if (isSignatureComponent) {
-                    potentialSignatureStart = i; // Marcar esta línea como posible inicio de firma
-                    lastBodyLineIndex = i; // Por ahora, este es el último punto del cuerpo
+                if (isClearSignatureComponent) {
+                    foundSignatureStart = i; // Marcar esta línea como el posible inicio de la firma
+                    lastBodyLineIndex = i; // Por ahora, el cuerpo termina aquí
+                } else if (foundSignatureStart !== -1) {
+                    // Si ya habíamos encontrado un componente de firma, y esta línea NO es un componente de firma,
+                    // significa que el cuerpo termina justo antes de 'foundSignatureStart'.
+                    lastBodyLineIndex = foundSignatureStart; // El cuerpo termina en el inicio de la firma
+                    break; // Hemos encontrado el final del cuerpo
                 } else {
-                    // **NUEVA LÓGICA PARA SALUDOS Y SIMILARES**
-                    const isGreetingLike = /^(saludos|un saludo|saludos cordiales|cordialmente|atte\.|sinceramente|best regards|kind regards),?$/i.test(linea);
-
-                    if (isGreetingLike) {
-                        // Si es una despedida como "Saludos" y ya hemos detectado un bloque de firma,
-                        // la consideramos parte de la firma.
-                        if (potentialSignatureStart !== -1) {
-                            potentialSignatureStart = i; // Extender el bloque de firma para incluir esta despedida
-                            lastBodyLineIndex = i;
-                        } else {
-                            // Si no hemos detectado un bloque de firma, esta línea es parte del cuerpo.
-                            break;
-                        }
-                    } else if (potentialSignatureStart !== -1) {
-                        // Si ya habíamos marcado un potencial inicio de firma, y esta línea no es un componente de firma ni una despedida,
-                        // significa que el cuerpo principal termina justo antes de 'potentialSignatureStart'.
-                        lastBodyLineIndex = potentialSignatureStart; // El cuerpo termina en el inicio de la firma
-                        break;
-                    } else {
-                        // Si no hemos encontrado ninguna potencial firma, y la línea actual no es un componente de firma ni una despedida,
-                        // significa que esta línea es parte del cuerpo y no debemos cortar.
-                        break; 
-                    }
+                    // Si no es un componente de firma, ni una despedida, ni hemos encontrado una firma aún,
+                    // esta línea es parte del cuerpo. Continuar buscando hacia arriba.
+                    lastBodyLineIndex = i; // Mantener el cuerpo extendido
                 }
             }
 
             if (lastBodyLineIndex < 0) lastBodyLineIndex = 0;
 
+            // Si no se encontró ninguna firma clara, devolver el texto original
+            if (foundSignatureStart === -1) {
+                return texto;
+            }
+
             // Si se encontró un potencial inicio de firma, cortar desde ahí. De lo contrario, devolver todo.
-            if (potentialSignatureStart !== -1) {
-                return lineas.slice(0, potentialSignatureStart).join('\n').trim();
+            if (foundSignatureStart !== -1) {
+                return lineas.slice(0, foundSignatureStart).join('\n').trim();
             } else {
                 return texto; // No se detectó firma, devolver el texto original completo
             }
