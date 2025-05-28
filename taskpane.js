@@ -69,36 +69,36 @@ Office.onReady(function(info) {
         // Función heurística para intentar eliminar la firma del correo
         function eliminarFirma(texto) {
             const lineas = texto.split(/\r?\n/);
-            let cuerpoLimpio = [];
-            let enFirma = false;
+            let lastBodyLineIndex = lineas.length - 1;
 
+            // Iterar desde el final para encontrar patrones comunes de inicio de firma o despedida
             for (let i = lineas.length - 1; i >= 0; i--) {
                 const linea = lineas[i].trim();
-                if (linea.length === 0) continue; // Ignorar líneas vacías al final
 
-                // Patrones comunes de inicio de firma o separadores
-                if (linea.startsWith('--') ||
+                // Patrones comunes de inicio de firma o despedida
+                if (linea.startsWith('--') || // Separador de firma
                     linea.toLowerCase().includes('saludos') ||
                     linea.toLowerCase().includes('atentamente') ||
-                    linea.toLowerCase().includes('gracias') ||
+                    linea.toLowerCase().includes('gracias') || // Incluir "Gracias," como un posible marcador de fin de cuerpo
                     linea.toLowerCase().includes('un saludo') ||
-                    linea.toLowerCase().includes('best regards')) {
-                    enFirma = true;
-                }
-
-                if (enFirma) {
-                    // Si estamos en la firma, no añadir la línea al cuerpo limpio
-                    // Pero si encontramos una línea que parece ser parte del cuerpo principal, salimos
-                    if (linea.length > 50 && !linea.includes('http') && !linea.includes('@')) {
-                        // Esto es una heurística: si la línea es larga y no parece un enlace/email, podría ser cuerpo
-                        enFirma = false; // Salir del modo firma
-                        cuerpoLimpio.unshift(lineas[i]); // Añadir esta línea al cuerpo
-                    }
-                } else {
-                    cuerpoLimpio.unshift(lineas[i]);
+                    linea.toLowerCase().includes('best regards') ||
+                    // Heurística para una sola línea de nombre después de una línea vacía (ej. "Daniel Casado")
+                    (linea.match(/^[a-z\s]+$/i) && linea.length < 30 && i > 0 && lineas[i-1].trim().length === 0)
+                    ) {
+                    lastBodyLineIndex = i - 1; // Marcar la línea anterior a esta como la última línea del cuerpo
+                } else if (linea.length > 0) {
+                    // Si encontramos una línea no vacía que no coincide con un patrón de firma,
+                    // y no hemos encontrado una firma aún, es probable que sea parte del cuerpo.
+                    // Detenemos la búsqueda de patrones de firma por encima de esta línea.
+                    break;
                 }
             }
-            return cuerpoLimpio.join('\n').trim();
+
+            // Asegurarse de no ir por debajo de 0
+            if (lastBodyLineIndex < 0) lastBodyLineIndex = 0;
+
+            // Devolver solo las líneas hasta lastBodyLineIndex (inclusive)
+            return lineas.slice(0, lastBodyLineIndex + 1).join('\n').trim();
         }
 
         form.addEventListener('submit', async function (e) {
@@ -153,13 +153,9 @@ Office.onReady(function(info) {
             Office.context.mailbox.item.body.getAsync(Office.CoercionType.Html, async function (asyncResult) {
                 if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
                     const htmlContent = asyncResult.value;
-                    console.log('Contenido HTML obtenido de Outlook:', htmlContent); // Nuevo log
+                    // NO aplicar eliminarFirma al HTML para la traducción. La función de traducción maneja el HTML directamente.
+                    const textoParaEnviar = htmlContent; // Enviamos el HTML completo
 
-                    // Eliminar la firma del correo si existe (esto aún se aplica al HTML si la firma es texto simple)
-                    const textoParaEnviar = eliminarFirma(htmlContent); // Ahora enviamos el HTML
-                    console.log('Texto a enviar a la función de traducción (después de eliminar firma):', textoParaEnviar); // Nuevo log
-
-                    console.log('HTML enviado a la función de traducción:', textoParaEnviar); // <-- Actualizado para depuración
                     try {
                         cargando.classList.remove('hidden');
                         // Usar fetchWithRetry para la llamada a la función serverless de traducción
