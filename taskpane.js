@@ -69,94 +69,126 @@ Office.onReady(function(info) {
         // Esta versión se usará para procesar la salida del modelo, si es necesario.
         function eliminarFirma(texto) {
             const lineas = texto.split(/\r?\n/);
+            let lastBodyLineIndex = lineas.length - 1;
 
-            // Patrones comunes de inicio de firma o despedida, incluyendo despedidas
-            const patronesDespedida = [
+            // Patrones para identificar la firma real (nombres, contactos, URLs, etc.)
+            const patronesFirma = [
                 /^--/,
-                /saludos/i,
-                /atentamente/i,
-                /gracias/i,
-                /un saludo/i,
-                /best regards/i,
-                /cordialmente/i,
-                /a la espera/i,
-                /esperando su respuesta/i,
-                /sinceramente/i,
-                /atte\./i,
-                /suyo/i,
-                /respetuosamente/i,
-                /kind regards/i,
-                /^(daniel|juan|maria|pedro|ana)[\s\S]*$/i // Nombres comunes al inicio de una firma
+                /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/, // Números de teléfono
+                /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i, // Direcciones de correo electrónico
+                /(http|https):\/\/[^\s]+/i, // URLs
+                /^(daniel|juan|maria|pedro|ana|jose|luis|carlos|javier|pablo|fernando|alberto|sergio|david|antonio|francisco|manuel|alejandro|miguel|rafael|ramon|roberto|santiago|vicente|angel|arturo|benito|cristian|diego|eduardo|felipe|gabriel|hector|ignacio|jaime|joaquin|jorge|julian|leonardo|marcos|martin|mateo|nicolas|oscar|pedro|quique|ricardo|ruben|salvador|tomas|victor|walter|xavi|yago|zaqueo)[\s\S]*$/i, // Nombres comunes
+                /project manager/i, /director/i, /ceo/i, /gerente/i, /sales/i, /marketing/i // Títulos de cargo
             ];
 
-            for (let i = 0; i < lineas.length; i++) { // Iterar desde el principio
+            let foundPotentialSignatureStart = false;
+
+            for (let i = lineas.length - 1; i >= 0; i--) {
                 const linea = lineas[i].trim();
 
-                for (const patron of patronesDespedida) {
-                    if (patron.test(linea) && linea.length > 0) { // Si la línea coincide con un patrón y no está vacía
-                        return lineas.slice(0, i).join('\n').trim(); // Cortar todo a partir de esta línea
+                // Si la línea está vacía, es un posible separador de firma
+                if (linea.length === 0) {
+                    // Si ya habíamos encontrado una potencial firma, y ahora hay una línea vacía, es probable que sea el final del cuerpo.
+                    if (foundPotentialSignatureStart) {
+                        lastBodyLineIndex = i;
+                        break; 
                     }
+                    continue; // Continuar buscando si es solo una línea vacía sin haber encontrado antes una firma
+                }
+
+                let isSignatureComponent = false;
+                for (const patron of patronesFirma) {
+                    if (patron.test(linea)) {
+                        isSignatureComponent = true;
+                        break;
+                    }
+                }
+
+                if (isSignatureComponent) {
+                    foundPotentialSignatureStart = true; // Hemos encontrado algo que podría ser el inicio de una firma
+                    lastBodyLineIndex = i; // Establecer este como el posible punto de corte
+                } else if (foundPotentialSignatureStart) {
+                    // Si ya habíamos encontrado una potencial firma, y la línea actual no es un componente de firma,
+                    // significa que la firma terminó en la línea anterior.
+                    break; 
+                } else {
+                    // Si no hemos encontrado ninguna potencial firma, y la línea actual no es un componente de firma,
+                    // significa que esta línea es parte del cuerpo y no debemos cortar.
+                    break; 
                 }
             }
 
-            return texto; // Si no se encuentra ninguna despedida, devolver el texto original
+            // Asegurarse de no cortar el documento entero si no se encuentra firma
+            if (lastBodyLineIndex === lineas.length - 1 && !foundPotentialSignatureStart) {
+                return texto; // No se encontró firma, devolver el texto original
+            }
+
+            // Devolver solo las líneas hasta lastBodyLineIndex (exclusivo, ya que lastBodyLineIndex es el inicio de la firma)
+            return lineas.slice(0, lastBodyLineIndex).join('\n').trim();
         }
 
         function extraerCuerpoPrincipal(texto) {
             const lineas = texto.split(/\r?\n/);
             let lastBodyLineIndex = lineas.length - 1;
 
-            const patronesDespedidaOInicioFirma = [
+            // Patrones para identificar la firma real (nombres, contactos, URLs, etc.)
+            const patronesFirmaOInicioFirma = [
                 /^--/,
-                /saludos/i,
-                /atentamente/i,
-                /gracias/i,
-                /un saludo/i,
-                /best regards/i,
-                /cordialmente/i,
-                /a la espera/i,
-                /esperando su respuesta/i,
-                /sinceramente/i,
-                /atte\./i,
-                /suyo/i,
-                /respetuosamente/i,
-                /kind regards/i,
-                /^(daniel|juan|maria|pedro|ana)[\s\S]*$/i // Nombres comunes al inicio de una firma
+                /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/, // Números de teléfono
+                /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i, // Direcciones de correo electrónico
+                /(http|https):\/\/[^\s]+/i, // URLs
+                /^(daniel|juan|maria|pedro|ana|jose|luis|carlos|javier|pablo|fernando|alberto|sergio|david|antonio|francisco|manuel|alejandro|miguel|rafael|ramon|roberto|santiago|vicente|angel|arturo|benito|cristian|diego|eduardo|felipe|gabriel|hector|ignacio|jaime|joaquin|jorge|julian|leonardo|marcos|martin|mateo|nicolas|oscar|pedro|quique|ricardo|ruben|salvador|tomas|victor|walter|xavi|yago|zaqueo)[\s\S]*$/i, // Nombres comunes
+                /project manager/i, /director/i, /ceo/i, /gerente/i, /sales/i, /marketing/i // Títulos de cargo
             ];
 
             let emptyLineCount = 0; // Contador de líneas vacías consecutivas
+            let potentialSignatureStart = -1; // Índice donde podría empezar la firma
 
             for (let i = lineas.length - 1; i >= 0; i--) {
                 const linea = lineas[i].trim();
 
                 if (linea.length === 0) {
                     emptyLineCount++;
-                    if (emptyLineCount >= 2) { // Si hay 2 o más líneas vacías consecutivas, asumimos que es el inicio de la firma
-                        lastBodyLineIndex = i - 1;
+                    if (emptyLineCount >= 2 && potentialSignatureStart !== -1) { // Si hay 2+ líneas vacías Y ya detectamos una potencial firma
+                        lastBodyLineIndex = i;
                         break;
                     }
+                    continue; // Seguir buscando si es solo una línea vacía
                 } else {
                     emptyLineCount = 0; // Resetear el contador si encontramos una línea no vacía
                 }
 
-                let esDespedidaOInicioFirma = false;
-                for (const patron of patronesDespedidaOInicioFirma) {
+                let isSignatureComponent = false;
+                for (const patron of patronesFirmaOInicioFirma) {
                     if (patron.test(linea)) {
-                        esDespedidaOInicioFirma = true;
+                        isSignatureComponent = true;
                         break;
                     }
                 }
 
-                if (esDespedidaOInicioFirma) {
-                    lastBodyLineIndex = i - 1;
+                if (isSignatureComponent) {
+                    potentialSignatureStart = i; // Marcar esta línea como posible inicio de firma
+                    lastBodyLineIndex = i; // Por ahora, este es el último punto del cuerpo
+                } else if (potentialSignatureStart !== -1) {
+                    // Si ya habíamos marcado un potencial inicio de firma, y esta línea no es un componente de firma,
+                    // significa que el cuerpo principal termina justo antes de 'potentialSignatureStart'.
+                    lastBodyLineIndex = potentialSignatureStart; // El cuerpo termina en el inicio de la firma
+                    break;
                 } else {
-                    break; // Hemos encontrado una línea que no es vacía ni una despedida/firma
+                    // Si no hemos encontrado ninguna potencial firma, y la línea actual no es un componente de firma,
+                    // significa que esta línea es parte del cuerpo y no debemos cortar.
+                    break; 
                 }
             }
 
             if (lastBodyLineIndex < 0) lastBodyLineIndex = 0;
 
-            return lineas.slice(0, lastBodyLineIndex + 1).join('\n').trim();
+            // Si se encontró un potencial inicio de firma, cortar desde ahí. De lo contrario, devolver todo.
+            if (potentialSignatureStart !== -1) {
+                return lineas.slice(0, potentialSignatureStart).join('\n').trim();
+            } else {
+                return texto; // No se detectó firma, devolver el texto original completo
+            }
         }
 
         form.addEventListener('submit', async function (e) {
