@@ -104,9 +104,23 @@ Office.onReady(function(info) {
                     }
                 }
 
-                if (isSignatureComponent) {
-                    foundPotentialSignatureStart = true; // Hemos encontrado algo que podría ser el inicio de una firma
-                    lastBodyLineIndex = i; // Establecer este como el posible punto de corte
+                // **NUEVA LÓGICA AQUÍ**
+                // Si la línea es "Saludos," y no hay otros componentes de firma en ella,
+                // no la consideramos el inicio de la firma a menos que ya hayamos encontrado otros componentes.
+                if (linea.toLowerCase() === 'saludos,' && !isSignatureComponent) {
+                    // Si ya habíamos encontrado el inicio de una firma (foundPotentialSignatureStart es true),
+                    // y esta línea es solo "Saludos,", la consideramos parte de la firma.
+                    // Si no, la consideramos parte del cuerpo y no cortamos.
+                    if (foundPotentialSignatureStart) {
+                        // Es parte de la firma que estamos eliminando
+                        lastBodyLineIndex = i; 
+                    } else {
+                        // Es solo "Saludos," y no es parte de una firma detectada, así que lo mantenemos.
+                        break; 
+                    }
+                } else if (isSignatureComponent) {
+                    foundPotentialSignatureStart = true;
+                    lastBodyLineIndex = i;
                 } else if (foundPotentialSignatureStart) {
                     // Si ya habíamos encontrado una potencial firma, y la línea actual no es un componente de firma,
                     // significa que la firma terminó en la línea anterior.
@@ -169,6 +183,18 @@ Office.onReady(function(info) {
                 if (isSignatureComponent) {
                     potentialSignatureStart = i; // Marcar esta línea como posible inicio de firma
                     lastBodyLineIndex = i; // Por ahora, este es el último punto del cuerpo
+                } else if (linea.toLowerCase() === 'saludos,' && !isSignatureComponent) {
+                    // Si ya habíamos encontrado el inicio de una firma (potentialSignatureStart !== -1),
+                    // y esta línea es solo "Saludos,", la consideramos parte de la firma.
+                    // Si no, la consideramos parte del cuerpo y no cortamos.
+                    if (potentialSignatureStart !== -1) {
+                        // Es parte de la firma que estamos eliminando
+                        potentialSignatureStart = i; // Actualizar el inicio de la firma
+                        lastBodyLineIndex = i; 
+                    } else {
+                        // Es solo "Saludos," y no es parte de una firma detectada, así que lo mantenemos.
+                        break; 
+                    }
                 } else if (potentialSignatureStart !== -1) {
                     // Si ya habíamos marcado un potencial inicio de firma, y esta línea no es un componente de firma,
                     // significa que el cuerpo principal termina justo antes de 'potentialSignatureStart'.
