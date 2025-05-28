@@ -108,14 +108,23 @@ Office.onReady(function(info) {
             Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, async function (asyncResult) {
                 if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
                     const correoContent = asyncResult.value;
-                    const instrucciones = instruccionesAdicionales.value.trim();
+                    const correoSinFirma = eliminarFirma(correoContent);
+                    const instruccionesAdicionalesValue = instruccionesAdicionales.value;
+
+                    let prompt = `Mejora la redacción y ortografía de este correo electrónico. Mantén el tono profesional y el significado original. Respeta la estructura del saludo inicial si lo hubiera. Elimina el nombre del remitente al final del mensaje.`;
+
+                    if (instruccionesAdicionalesValue) {
+                        prompt += `\n\nInstrucciones adicionales: ${instruccionesAdicionalesValue}`; 
+                    }
+
+                    prompt += `\n\nCorreo original:\n${correoSinFirma}`;
 
                     try {
                         // Usar fetchWithRetry para la llamada a la función serverless
                         const response = await fetchWithRetry('/.netlify/functions/mejorar-correo', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ correo: correoContent, instrucciones: instrucciones })
+                            body: JSON.stringify({ prompt: prompt })
                         });
                         if (!response.ok) throw new Error('Error al comunicarse con el servidor');
                         const data = await response.json();
