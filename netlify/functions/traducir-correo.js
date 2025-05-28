@@ -20,7 +20,17 @@ exports.handler = async (event) => {
     const openai = new OpenAI({ apiKey: apiKey });
 
     try {
-        const { texto } = JSON.parse(event.body || '{}');
+        let body;
+        try {
+            body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+        } catch (parseError) {
+            console.error('Error al parsear el cuerpo del evento:', parseError);
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Formato de solicitud inválido.' }),
+            };
+        }
+        const { texto } = body;
         console.log('Texto recibido en la función de traducción:', texto);
 
         if (!texto) {

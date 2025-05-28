@@ -111,7 +111,7 @@ Office.onReady(function(info) {
                     const correoSinFirma = eliminarFirma(correoContent);
                     const instruccionesAdicionalesValue = instruccionesAdicionales.value;
 
-                    let prompt = `Mejora la redacción y ortografía de este correo electrónico. Mantén el tono profesional y el significado original. Respeta la estructura del saludo inicial si lo hubiera. Elimina el nombre del remitente al final del mensaje.`;
+                    let prompt = `Mejora la redacción y ortografía de este correo electrónico. Mantén el tono profesional y el significado original. ES CRÍTICO: Respeta EXACTAMENTE la estructura del saludo inicial si lo hubiera. ES CRÍTICO: Elimina COMPLETAMENTE el nombre del remitente y la despedida final del mensaje.`;
 
                     if (instruccionesAdicionalesValue) {
                         prompt += `\n\nInstrucciones adicionales: ${instruccionesAdicionalesValue}`; 
