@@ -67,6 +67,41 @@ Office.onReady(function(info) {
         mostrarFormularioPrincipal();
 
         // Esta versión se usará para procesar la salida del modelo, si es necesario.
+        function eliminarFirma(texto) {
+            const lineas = texto.split(/\r?\n/);
+
+            // Patrones comunes de inicio de firma o despedida, incluyendo despedidas
+            const patronesDespedida = [
+                /^--/,
+                /saludos/i,
+                /atentamente/i,
+                /gracias/i,
+                /un saludo/i,
+                /best regards/i,
+                /cordialmente/i,
+                /a la espera/i,
+                /esperando su respuesta/i,
+                /sinceramente/i,
+                /atte\./i,
+                /suyo/i,
+                /respetuosamente/i,
+                /kind regards/i,
+                /^(daniel|juan|maria|pedro|ana)[\s\S]*$/i // Nombres comunes al inicio de una firma
+            ];
+
+            for (let i = 0; i < lineas.length; i++) { // Iterar desde el principio
+                const linea = lineas[i].trim();
+
+                for (const patron of patronesDespedida) {
+                    if (patron.test(linea) && linea.length > 0) { // Si la línea coincide con un patrón y no está vacía
+                        return lineas.slice(0, i).join('\n').trim(); // Cortar todo a partir de esta línea
+                    }
+                }
+            }
+
+            return texto; // Si no se encuentra ninguna despedida, devolver el texto original
+        }
+
         function extraerCuerpoPrincipal(texto) {
             const lineas = texto.split(/\r?\n/);
             let lastBodyLineIndex = lineas.length - 1;
@@ -89,8 +124,20 @@ Office.onReady(function(info) {
                 /^(daniel|juan|maria|pedro|ana)[\s\S]*$/i // Nombres comunes al inicio de una firma
             ];
 
+            let emptyLineCount = 0; // Contador de líneas vacías consecutivas
+
             for (let i = lineas.length - 1; i >= 0; i--) {
                 const linea = lineas[i].trim();
+
+                if (linea.length === 0) {
+                    emptyLineCount++;
+                    if (emptyLineCount >= 2) { // Si hay 2 o más líneas vacías consecutivas, asumimos que es el inicio de la firma
+                        lastBodyLineIndex = i - 1;
+                        break;
+                    }
+                } else {
+                    emptyLineCount = 0; // Resetear el contador si encontramos una línea no vacía
+                }
 
                 let esDespedidaOInicioFirma = false;
                 for (const patron of patronesDespedidaOInicioFirma) {
@@ -100,7 +147,7 @@ Office.onReady(function(info) {
                     }
                 }
 
-                if (linea.length === 0 || esDespedidaOInicioFirma) {
+                if (esDespedidaOInicioFirma) {
                     lastBodyLineIndex = i - 1;
                 } else {
                     break; // Hemos encontrado una línea que no es vacía ni una despedida/firma
@@ -109,58 +156,6 @@ Office.onReady(function(info) {
 
             if (lastBodyLineIndex < 0) lastBodyLineIndex = 0;
 
-            return lineas.slice(0, lastBodyLineIndex + 1).join('\n').trim();
-        }
-
-        function eliminarFirma(texto) {
-            const lineas = texto.split(/\r?\n/);
-            let lastBodyLineIndex = lineas.length - 1;
-
-            // Patrones comunes de inicio de firma o despedida, incluyendo despedidas
-            const patronesDespedida = [
-                /^--/,
-                /saludos/i,
-                /atentamente/i,
-                /gracias/i,
-                /un saludo/i,
-                /best regards/i,
-                /cordialmente/i,
-                /a la espera/i,
-                /esperando su respuesta/i,
-                /sinceramente/i,
-                /atte\./i,
-                /suyo/i,
-                /respetuosamente/i,
-                /kind regards/i,
-                // Heurística para una sola línea de nombre después de una línea vacía (ej. "Daniel Casado")
-                /^[a-z\s]+$/i // Esto es más genérico, se usará con cuidado
-            ];
-
-            for (let i = lineas.length - 1; i >= 0; i--) {
-                const linea = lineas[i].trim();
-
-                let esDespedida = false;
-                for (const patron of patronesDespedida) {
-                    if (patron.test(linea)) {
-                        esDespedida = true;
-                        break;
-                    }
-                }
-
-                // Si la línea es vacía o coincide con un patrón de despedida, la consideramos parte de la firma/despedida.
-                // Continuamos hacia arriba hasta encontrar una línea que no sea ni vacía ni una despedida.
-                if (linea.length === 0 || esDespedida) {
-                    lastBodyLineIndex = i - 1;
-                } else {
-                    // Hemos encontrado una línea que no es vacía y no es una despedida. Este es el final del cuerpo.
-                    break;
-                }
-            }
-
-            // Asegurarse de no ir por debajo de 0
-            if (lastBodyLineIndex < 0) lastBodyLineIndex = 0;
-
-            // Devolver solo las líneas hasta lastBodyLineIndex (inclusive)
             return lineas.slice(0, lastBodyLineIndex + 1).join('\n').trim();
         }
 
@@ -179,19 +174,7 @@ Office.onReady(function(info) {
 
 INSTRUCCIONES CRÍTICAS Y OBLIGATORIAS:
 1. Respeta EXACTAMENTE la estructura y el contenido del saludo inicial (ej. 'Estimado Juan,', 'Hola equipo,') si lo hubiera. NO LO ALTERES.
-2. La salida NO DEBE INCLUIR NINGÚN nombre de remitente, firma, o despedida final. OMITE COMPLETAMENTE ESTAS SECCIONES FINALES. Esto incluye frases como 'Saludos,', 'Atentamente,', 'Gracias,', 'Quedo a la espera', 'Un saludo', 'Atte.', 'Cordialmente', 'A la espera', 'Esperando su respuesta', 'Sinceramente', 'Atte.', 'Suyo', 'Respetuosamente', 'Kind regards', o cualquier otra forma de despedida o firma.
-
-EJEMPLO DE LO QUE NO DEBE INCLUIR:
-Si el correo original termina con:
-"Quedo a la espera.
-Gracias,
-
-Daniel Casado Alonso
-Project Manager"
-
-Tu respuesta NO DEBE INCLUIR NADA de eso. El correo mejorado debe terminar justo antes de la despedida.
-
-`;
+2. La salida NO DEBE INCLUIR NINGÚN nombre de remitente, firma, o despedida final. OMITE COMPLETAMENTE ESTAS SECCIONES FINALES.`;
 
                     if (instruccionesAdicionalesValue) {
                         prompt += `\nInstrucciones adicionales: ${instruccionesAdicionalesValue}`; 
