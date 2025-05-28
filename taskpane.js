@@ -72,7 +72,7 @@ Office.onReady(function(info) {
             let lastBodyLineIndex = lineas.length - 1;
 
             // Patrones para identificar la firma real (nombres, contactos, URLs, etc.)
-            const patronesFirma = [
+            const patronesFirmaOInicioFirma = [
                 /^--/,
                 /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/, // Números de teléfono
                 /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i, // Direcciones de correo electrónico
@@ -86,49 +86,48 @@ Office.onReady(function(info) {
             for (let i = lineas.length - 1; i >= 0; i--) {
                 const linea = lineas[i].trim();
 
-                // Si la línea está vacía, es un posible separador de firma
                 if (linea.length === 0) {
-                    // Si ya habíamos encontrado una potencial firma, y ahora hay una línea vacía, es probable que sea el final del cuerpo.
                     if (foundPotentialSignatureStart) {
                         lastBodyLineIndex = i;
-                        break; 
+                        break;
                     }
                     continue; // Continuar buscando si es solo una línea vacía sin haber encontrado antes una firma
                 }
 
                 let isSignatureComponent = false;
-                for (const patron of patronesFirma) {
+                for (const patron of patronesFirmaOInicioFirma) {
                     if (patron.test(linea)) {
                         isSignatureComponent = true;
                         break;
                     }
                 }
 
-                // **NUEVA LÓGICA AQUÍ**
-                // Si la línea es "Saludos," y no hay otros componentes de firma en ella,
-                // no la consideramos el inicio de la firma a menos que ya hayamos encontrado otros componentes.
-                if (linea.toLowerCase() === 'saludos,' && !isSignatureComponent) {
-                    // Si ya habíamos encontrado el inicio de una firma (foundPotentialSignatureStart es true),
-                    // y esta línea es solo "Saludos,", la consideramos parte de la firma.
-                    // Si no, la consideramos parte del cuerpo y no cortamos.
-                    if (foundPotentialSignatureStart) {
-                        // Es parte de la firma que estamos eliminando
-                        lastBodyLineIndex = i; 
-                    } else {
-                        // Es solo "Saludos," y no es parte de una firma detectada, así que lo mantenemos.
-                        break; 
-                    }
-                } else if (isSignatureComponent) {
+                if (isSignatureComponent) {
                     foundPotentialSignatureStart = true;
                     lastBodyLineIndex = i;
-                } else if (foundPotentialSignatureStart) {
-                    // Si ya habíamos encontrado una potencial firma, y la línea actual no es un componente de firma,
-                    // significa que la firma terminó en la línea anterior.
-                    break; 
                 } else {
-                    // Si no hemos encontrado ninguna potencial firma, y la línea actual no es un componente de firma,
-                    // significa que esta línea es parte del cuerpo y no debemos cortar.
-                    break; 
+                    // **NUEVA LÓGICA PARA SALUDOS Y SIMILARES**
+                    const isGreetingLike = /^(saludos|un saludo|saludos cordiales|cordialmente|atte\.|sinceramente|best regards|kind regards),?$/i.test(linea);
+
+                    if (isGreetingLike) {
+                        // Si es una despedida como "Saludos" y ya hemos detectado un bloque de firma,
+                        // la consideramos parte de la firma.
+                        if (foundPotentialSignatureStart) {
+                            foundPotentialSignatureStart = true; // Extender el bloque de firma para incluir esta despedida
+                            lastBodyLineIndex = i;
+                        } else {
+                            // Si no hemos detectado un bloque de firma, esta línea es parte del cuerpo.
+                            break;
+                        }
+                    } else if (foundPotentialSignatureStart) {
+                        // Si ya habíamos encontrado una potencial firma, y esta línea no es un componente de firma ni una despedida,
+                        // significa que la firma terminó en la línea anterior.
+                        break;
+                    } else {
+                        // Si no hemos encontrado ninguna potencial firma, y la línea actual no es un componente de firma ni una despedida,
+                        // significa que esta línea es parte del cuerpo y no debemos cortar.
+                        break; 
+                    }
                 }
             }
 
@@ -183,27 +182,30 @@ Office.onReady(function(info) {
                 if (isSignatureComponent) {
                     potentialSignatureStart = i; // Marcar esta línea como posible inicio de firma
                     lastBodyLineIndex = i; // Por ahora, este es el último punto del cuerpo
-                } else if (linea.toLowerCase() === 'saludos,' && !isSignatureComponent) {
-                    // Si ya habíamos encontrado el inicio de una firma (potentialSignatureStart !== -1),
-                    // y esta línea es solo "Saludos,", la consideramos parte de la firma.
-                    // Si no, la consideramos parte del cuerpo y no cortamos.
-                    if (potentialSignatureStart !== -1) {
-                        // Es parte de la firma que estamos eliminando
-                        potentialSignatureStart = i; // Actualizar el inicio de la firma
-                        lastBodyLineIndex = i; 
+                } else {
+                    // **NUEVA LÓGICA PARA SALUDOS Y SIMILARES**
+                    const isGreetingLike = /^(saludos|un saludo|saludos cordiales|cordialmente|atte\.|sinceramente|best regards|kind regards),?$/i.test(linea);
+
+                    if (isGreetingLike) {
+                        // Si es una despedida como "Saludos" y ya hemos detectado un bloque de firma,
+                        // la consideramos parte de la firma.
+                        if (potentialSignatureStart !== -1) {
+                            potentialSignatureStart = i; // Extender el bloque de firma para incluir esta despedida
+                            lastBodyLineIndex = i;
+                        } else {
+                            // Si no hemos detectado un bloque de firma, esta línea es parte del cuerpo.
+                            break;
+                        }
+                    } else if (potentialSignatureStart !== -1) {
+                        // Si ya habíamos marcado un potencial inicio de firma, y esta línea no es un componente de firma ni una despedida,
+                        // significa que el cuerpo principal termina justo antes de 'potentialSignatureStart'.
+                        lastBodyLineIndex = potentialSignatureStart; // El cuerpo termina en el inicio de la firma
+                        break;
                     } else {
-                        // Es solo "Saludos," y no es parte de una firma detectada, así que lo mantenemos.
+                        // Si no hemos encontrado ninguna potencial firma, y la línea actual no es un componente de firma ni una despedida,
+                        // significa que esta línea es parte del cuerpo y no debemos cortar.
                         break; 
                     }
-                } else if (potentialSignatureStart !== -1) {
-                    // Si ya habíamos marcado un potencial inicio de firma, y esta línea no es un componente de firma,
-                    // significa que el cuerpo principal termina justo antes de 'potentialSignatureStart'.
-                    lastBodyLineIndex = potentialSignatureStart; // El cuerpo termina en el inicio de la firma
-                    break;
-                } else {
-                    // Si no hemos encontrado ninguna potencial firma, y la línea actual no es un componente de firma,
-                    // significa que esta línea es parte del cuerpo y no debemos cortar.
-                    break; 
                 }
             }
 
