@@ -8,20 +8,15 @@ exports.handler = async function(event, context) {
     };
   }
 
-  const { correo, instrucciones } = JSON.parse(event.body || '{}'); // Ahora esperamos 'correo' e 'instrucciones'
-  if (!correo) {
+  const { prompt } = JSON.parse(event.body || '{}'); // Ahora esperamos 'prompt'
+  if (!prompt) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: 'Faltan datos requeridos: correo' })
+      body: JSON.stringify({ error: 'Faltan datos requeridos: prompt' }) // Mensaje de error actualizado
     };
   }
 
-  // Construir el prompt adaptado para solo usar el contenido del correo
-  let prompt = `Eres un asistente experto en redacción de correos electrónicos. Tu tarea es mejorar el siguiente correo, corrigiendo ortografía y gramática, sugiriendo mejoras de estructura y expresiones para que sea más formal, claro y efectivo, pero respetando al 100% la primera frase y el tono original. No añadas adjetivos ni cambies el encabezado. Habla en singular si el texto está en primera persona. **IMPORTANTE: Devuelve ÚNICAMENTE el correo mejorado, sin ningún prefijo como 'Correo mejorado:', 'Aquí tienes el correo mejorado:', o similar. No incluyas explicaciones de las mejoras.**\n\nCorreo original:\n${correo}`;
-
-  if (instrucciones) {
-    prompt += `\n\nInstrucciones adicionales: ${instrucciones}`;
-  }
+  // El prompt ya viene construido desde el frontend
 
   try {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -41,7 +36,7 @@ exports.handler = async function(event, context) {
         model: 'gpt-4o',
         messages: [
           { role: 'system', content: 'Eres un asistente de redacción profesional.' },
-          { role: 'user', content: prompt }
+          { role: 'user', content: prompt } // Usamos el prompt recibido directamente
         ],
         temperature: 0.3,
         max_tokens: 700
