@@ -289,7 +289,7 @@ INSTRUCCIONES CRÍTICAS Y OBLIGATORIAS:
                 if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
                     const htmlContent = asyncResult.value;
                     // NO aplicar eliminarFirma al HTML para la traducción. La función de traducción maneja el HTML directamente.
-                    const textoParaEnviar = htmlContent; // Enviamos el HTML completo
+                    let textoParaEnviar = extraerCuerpoPrincipal(htmlContent); // Limpiamos el HTML y la firma antes de enviar
 
                     try {
                         cargando.classList.remove('hidden');
