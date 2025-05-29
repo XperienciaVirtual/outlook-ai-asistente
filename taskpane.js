@@ -214,18 +214,22 @@ Office.onReady(function(info) {
 
             if (lastBodyLineIndex < 0) lastBodyLineIndex = 0;
 
-            // Si no se encontró ninguna firma clara, devolver el texto original
-            if (foundSignatureStart === -1) {
-                return texto;
+            let cuerpoLimpio;
+            if (foundSignatureStart !== -1) {
+                // Si se encontró una firma, cortar el texto hasta el inicio de la firma.
+                cuerpoLimpio = lineas.slice(0, foundSignatureStart).join('\n').trim();
+            } else {
+                // Si no se encontró firma, devolver el texto original completo (sin procesar por la lógica de firma).
+                cuerpoLimpio = texto.trim(); // Asegurarse de que al menos se eliminen espacios al inicio/final
             }
 
-            // Si se encontró un potencial inicio de firma, cortar desde ahí. De lo contrario, devolver todo.
-            if (foundSignatureStart !== -1) {
-                return lineas.slice(0, foundSignatureStart).join('\n').trim();
+            // Asegurarse de que el cuerpo no esté vacío. Si lo está, devolver el texto original para evitar errores.
+            if (cuerpoLimpio.length === 0 && texto.trim().length > 0) {
+                return texto.trim();
             } else {
-                return texto; // No se detectó firma, devolver el texto original completo
+                return cuerpoLimpio;
             }
-        }
+        } // Esta llave cierra la función extraerCuerpoPrincipal
 
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
